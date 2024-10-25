@@ -856,14 +856,25 @@ function updateTotalCost() {
                 // Gather ingredient data from the table
                 gatherIngredientData(formData);
 
-                try {
-                    await sendToGitHub("new", formData, userEmail);
-                    await sendEmail("new", formData, userEmail); // Send email for new recipe
-                    showSuccessDialog(); // Show success dialog
-                    clearFields(); // Clear fields after submission
-                } catch (error) {
-                    alert('Error: ' + error.message); // Show error message
-                }
+              try {
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `token ${YOUR_GITHUB_TOKEN}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        const errorResponse = await response.json();
+        console.error('GitHub API error:', errorResponse);
+        throw new Error(`GitHub API error: ${errorResponse.message}`);
+    }
+} catch (error) {
+    console.error('Error:', error);
+}
+
 
             } else if (selectedOption === "modify") {
                 formData.articleCode = document.getElementById('articleCode').value;
