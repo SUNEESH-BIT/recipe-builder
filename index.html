@@ -903,9 +903,10 @@ function updateTotalCost() {
     });
 }
 
-// Function to send data to GitHub
 async function sendToGitHub(action, formData, userEmail) {
     const url = `https://api.github.com/repos/OWNER/REPO/contents/FILE_PATH.json`; // Update with your GitHub repo info
+
+    const sha = await getFileSha(); // Get existing SHA if updating
     const content = btoa(JSON.stringify({ action, formData, userEmail })); // Encode data as Base64
 
     const response = await fetch(url, {
@@ -917,16 +918,18 @@ async function sendToGitHub(action, formData, userEmail) {
         body: JSON.stringify({
             message: `Submitting ${action} data`,
             content: content,
-            sha: '' // Optionally fetch the sha if you want to overwrite an existing file
+            sha: sha // Include SHA to update the existing file
         }),
     });
 
     if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.statusText}`);
+        const errorDetails = await response.json();
+        throw new Error(`GitHub API error: ${errorDetails.message}`);
     }
 
     return await response.json();
 }
+
 
 // Function to gather ingredient data from the table
 function gatherIngredientData(formData) {
