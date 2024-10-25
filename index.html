@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe Builder
+</title>
+  <style>
+    /* Color Palette */
+    :root {
+      --primary-color: #8e44ad; /* Purple */
+      --secondary-color: #3498db; /* Blue */
+      --accent-color: #e74c3c; /* Red */
+      --background-color: #f9f9f9; /* Light Gray */
+      --text-color: #34495e; /* Dark Gray */
+      --shadow-color: rgba(0, 0, 0, 0.2); /* Shadow Color */
+    }
+
+    /* Styling the title with 3D effect */
+    .title {
+      font-family: 'Roboto', sans-serif;
+      font-size: 30px;
+      color: var(--primary-color);
+      text-align: center;
+      margin: 20px 0;
+      text-shadow: 2px 2px 5px var(--shadow-color);
+    }
+
+    .total-cost {
+      font-family: 'Arial', sans-serif;
+      font-size: 16px;
+      color: var(--accent-color);
+      font-weight: bold;
+      margin: 20px;
+      text-align: center;
+      text-shadow: 1px 1px 4px var(--shadow-color);
+    }
+
+    /* Select option container styling */
+    .select-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    /* Dropdown box styling */
+    select {
+      font-family: 'Arial', sans-serif;
+      font-size: 14px;
+      padding: 6px;
+      margin-top: 5px;
+      width: 180px;
+      height: 30px;
+      border-radius: 10px;
+      box-shadow: 3px 3px 10px var(--shadow-color);
+      border: 1px solid #aaa;
+      color: var(--text-color);
+      background: linear-gradient(145deg, #e1f5fe, #d1e8f5); /* Soft blue gradient */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      text-align: center;
+    }
+
+    select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 8px rgba(142, 68, 173, 0.7);
+      outline: none;
+    }
+
+    /* Label with shadow */
+    label {
+      font-family: 'Arial', sans-serif;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-color);
+      background: #ffffff; /* White background */
+      padding: 4px 10px;
+      border-radius: 6px;
+      box-shadow: 2px 2px 6px var(--shadow-color);
+      transition: all 0.2s ease;
+    }
+
+    /* Header with subtle shadow */
+    .recipe-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Roboto', sans-serif;
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--text-color);
+      background-color: #dfe6e9; /* Light gray */
+      height: 5px;
+      padding: 8px;
+      border-radius: 5px;
+      margin-top: 0.5px;
+      margin-left: 90px;
+      width: 288px;
+      text-align: center;
+      box-shadow: 2px 2px 5px var(--shadow-color);
+    }
+
+    .info-container {
+      margin-left: 90px;
+      margin-top: 10px;
+    }
+
+    .info-label {
+      font-family: 'Roboto', sans-serif;
+      font-size: 12px;
+      color: var(--text-color);
+      margin-bottom: 5px;
+      display: inline-block;
+      width: 100px;
+    }
+
+    /* Edit cell with 3D styling */
+.edit-cell {
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  color: var(--text-color);
+  background-color: #e8f5e9; /* Soft green */
+  width: 197px;
+  height: 14px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 2px;
+  line-height: 1.2;
+  box-shadow: inset 1px 1px 3px var(--shadow-color);
+  font-weight: bold; /* Make text bold */
+}
+
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .recipe-unit-select {
+      font-family: 'Roboto', sans-serif;
+      font-size: 12px;
+      height: 20px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      box-shadow: 0px 2px 4px var(--shadow-color);
+      padding: 0;
+      line-height: 14px;
+      width: 202.5px;
+    }
+
+    .ingredients-title {
+      font-family: 'Roboto', sans-serif;
+      font-size: 12px;
+      color: var(--text-color);
+      text-align: center;
+      background-color: #fce4ec; /* Light pink */
+      padding: 5px;
+      margin: 20px 0;
+      border-radius: 5px;
+      box-shadow: 2px 2px 5px var(--shadow-color);
+    }
+
+    .table-container {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      box-shadow: 2px 2px 6px var(--shadow-color);
+    }
+
+   table { 
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px; 
+}
+th, td {
+  font-size: 12px;
+  color: var(--text-color);
+  padding: 4px;
+  border: 1px solid #ccc;
+  text-align: center;
+  width: 100px; /* Fixed width for each cell */
+}
+th {
+  font-family: 'Roboto', sans-serif;
+  background-color: #dfe6e9;
+  color: var(--text-color);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0px 2px 5px var(--shadow-color);
+}
+
+
+
+    .button-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+      gap: 10px;
+    }
+
+    /* Button with 3D effect */
+    .add-button, .remove-button, .submit-button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 15px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 2px 2px 5px var(--shadow-color);
+    }
+
+    .remove-button {
+      background-color: var(--accent-color);
+    }
+
+    .add-button:hover, .remove-button:hover, .submit-button:hover {
+      opacity: 0.8;
+    }
+
+    .clear-button {
+      background-color: #DC143C; /* Red background */
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 4px 30px;
+      cursor: pointer;
+      font-size: 20px;
+      position: absolute;
+      right: 10%;
+      top: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: 2px 2px 5px var(--shadow-color);
+    }
+
+    .submit-button {
+      background-color: var(--secondary-color); /* Blue background */
+       color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 4px 20px;
+      cursor: pointer;
+      font-size: 20px;
+      position: absolute;
+      right: 3%;
+      top: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: 2px 2px 5px var(--shadow-color);
+    }
+    }
+
+    /* Edited input cell */
+    .edited {
+      background-color: #d0e7ff;
+      border: 1px solid var(--primary-color);
+      box-shadow: inset 2px 2px 5px var(--shadow-color);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .shortcut-info {
+      font-size: 11px;
+      margin-top: 10px;
+    }
+
+    .shortcut-info strong {
+      color: var(--primary-color);
+    }
+    .shortcut-info mark {
+    background-color: lightblue; /* Change the highlight color to light blue */
+    color: blue; /* Keep the text color blue for consistency */
+  }
+
+    .flex-container {
+      position: relative;
+      display: flex;
+      justify-content: flex-start;
+      margin: 20px;
+    }
+
+    .table-section {
+      /* No change needed here */
+    }
+
+    .chart-container {
+      position: absolute;
+      right: 10%;
+      top: 20%;
+      width: 200px;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    .profit-percentage {
+      font-family: 'Arial', sans-serif;
+      font-size: 16px;
+      color: var(--primary-color);
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    /* Style for profit section */
+    .profit-container {
+      background-color: #ffe0b2; /* Light orange */
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 2px 2px 5px var(--shadow-color);
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+      
+         /* Style for the dialog boxes */
+.dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Dark background with transparency */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Ensure it appears above other content */
+}
+
+.dialog-content {
+    background-color: white; /* Background color of dialog */
+    padding: 30px; /* Add more padding */
+    border-radius: 15px; /* Rounder corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
+    text-align: center;
+    width: 300px; /* Fixed width for better appearance */
+}
+
+/* Button styles */
+.dialog-content button {
+    margin: 5px;
+    padding: 10px 15px; /* Add padding to buttons */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Round corners for buttons */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover */
+}
+
+/* Submit button styles */
+.submit-btn {
+    background-color: #28a745; /* Green background */
+    color: white; /* White text color */
+}
+
+.submit-btn:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+/* Cancel button styles */
+.cancel-btn {
+    background-color: #dc3545; /* Red background */
+    color: white; /* White text color */
+}
+
+.cancel-btn:hover {
+    background-color: #c82333; /* Darker red on hover */
+}
+
+/* Specific style for success dialog */
+#successDialog .dialog-content {
+    color: green; /* Set text color to green for success messages */
+}
+
+/* Style for the email input field */
+.dialog-content input[type="email"] {
+    width: calc(100% - 20px); /* Full width minus padding */
+    padding: 10px; /* Add padding for better appearance */
+    border: 1px solid #ccc; /* Light gray border */
+    border-radius: 5px; /* Round corners */
+    margin-top: 10px; /* Space above input */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+ .edit-cell {
+            text-transform: uppercase; /* This will display all text in uppercase */
+        }
+
+  </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <title>Recipe Builder
+</title>
+</head>
+<body>
+  <h1 class="title">Recipe Builder
+</h1>
+
+  <div class="select-container">
+    <label for="recipeOption">Choose an option:</label>
+    <select id="recipeOption" onchange="changeBackgroundColor()">
+      <option value="new">NEW CREATION</option>
+      <option value="modify">RECIPE MODIFY</option>
+    </select>
+  </div>
+
+  <div class="total-cost" id="totalCostDiv" style="padding: 10px; border-radius: 8px;">
+    <strong>Total Cost:</strong> <span id="totalCost">0</span>
+  </div>
+<div class="profit-percentage" id="profitPercentageDiv" style="padding: 10px; border-radius: 8px;">
+    <strong>Profit Percentage:</strong> <span id="profitPercentage">0%</span>
+  </div>
+
+  <div class="chart-container">
+    <canvas id="costPieChart"></canvas>
+  </div>
+
+  <script>
+    // Initialize Chart.js Pie Chart
+    const ctx = document.getElementById('costPieChart').getContext('2d');
+    let pieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Total Cost', 'Profit'],
+        datasets: [{
+          label: 'Cost & Profit Comparison',
+          data: [0, 0],
+          backgroundColor: ['#FF9A00', '#008C45'], // Updated colors
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          datalabels: {
+            formatter: (value, context) => {
+              const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+              const percentage = total ? ((value / total) * 100).toFixed(2) + '%' : '0%';
+              return percentage;
+            },
+            color: '#fff',
+            anchor: 'end',
+            align: 'end',
+          },
+          tooltip: {
+            callbacks: {
+              label: (tooltipItem) => {
+                const label = tooltipItem.label || '';
+                const value = tooltipItem.raw || 0;
+                const total = tooltipItem.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                const percentage = total ? ((value / total) * 100).toFixed(2) + '%' : '0%';
+                return `${label}: ${value} (${percentage})`;
+              }
+            }
+          }
+        },
+        animation: {
+          animateScale: true,
+          animateRotate: true
+        }
+      }
+    });
+
+    function updateProfitPercentage() {
+      const sellingPrice = parseFloat(document.getElementById('sellingPrice').value) || 0;
+      const totalCost = parseFloat(document.getElementById('totalCost').innerText) || 0;
+      const profit = sellingPrice - totalCost;
+      const profitPercentage = totalCost > 0 ? ((profit / sellingPrice) * 100).toFixed(2) : 0;
+
+      // Update the profit percentage display
+      const profitPercentageDiv = document.getElementById('profitPercentage');
+      profitPercentageDiv.innerText = profitPercentage + '%';
+
+      // Change the color based on the profit percentage
+      if (profitPercentage < 0) {
+        profitPercentageDiv.style.color = '#FF3D00'; // Updated to a more vibrant red
+        document.getElementById('profitPercentageDiv').style.color = '#FF3D00'; // Updated label color
+      } else {
+        profitPercentageDiv.style.color = '#008C45'; // Default color for positive profit
+        document.getElementById('profitPercentageDiv').style.color = '#008C45'; // Change the label color back to default
+      }
+    }
+
+    function updateChart() {
+      const sellingPrice = parseFloat(document.getElementById('sellingPrice').value) || 0;
+      const totalCost = parseFloat(document.getElementById('totalCost').innerText) || 0;
+      const profit = sellingPrice - totalCost;
+
+      if (profit < 0) {
+        pieChart.data.datasets[0].data = [totalCost];
+        pieChart.data.datasets[0].backgroundColor = ['#FF9A00']; // Updated for negative profit
+      } else {
+        pieChart.data.datasets[0].data = [totalCost, profit];
+        pieChart.data.datasets[0].backgroundColor = ['#FF9A00', '#008C45']; // Updated colors
+      }
+
+      pieChart.update();
+      updateProfitPercentage();
+    }
+
+    function calculateTotalCost() {
+      const totalCost = 0; // Replace with actual logic
+      document.getElementById('totalCost').innerText = totalCost;
+      updateChart();
+    }
+
+    window.onload = function() {
+      calculateTotalCost();
+    };
+
+    function changeBackgroundColor() {
+  const selectedOption = document.getElementById('recipeOption').value;
+  const profitPercentageDiv = document.getElementById('profitPercentageDiv');
+  const chartContainer = document.querySelector('.chart-container');
+  const body = document.body; // To change the background color
+
+  if (selectedOption === 'new') {
+    // Show chart and profit percentage
+    profitPercentageDiv.style.display = 'block';
+    chartContainer.style.display = 'block';
+    body.style.backgroundColor = '#FFF0F5'; // Lavender Blush for new creation
+  } else if (selectedOption === 'modify') {
+    // Hide chart and profit percentage
+    profitPercentageDiv.style.display = 'none';
+    chartContainer.style.display = 'none';
+    body.style.backgroundColor = '#FFE5D9'; // Peach Puff for recipe modify
+  } else {
+    // Reset or keep default background color
+    profitPercentageDiv.style.display = 'none';
+    chartContainer.style.display = 'none';
+    body.style.backgroundColor = '#E6E6FA'; // Light Lilac for default
+  }
+}
+  </script>
+</head>
+<body>
+
+
+  <div class="recipe-header">RECIPE INFORMATION</div>
+
+  <div class="info-container">
+    <div id="newCreationFields">
+      <div class="info-row">
+        <span class="info-label">Location:</span>
+        <input type="text" class="edit-cell" id="location" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">Date:</span>
+        <input type="date" class="edit-cell" id="date" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">Name of Recipe:</span>
+        <input type="text" class="edit-cell" id="recipeName" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">Arabic Desc:</span>
+        <input type="text" class="edit-cell" id="arabicDesc" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">Recipe Unit:</span>
+        <select class="edit-cell recipe-unit-select" id="recipeUnit">
+          <option value="kilogram">Select unit</option>
+          <option value="kilogram">Kilogram</option>
+          <option value="piece">Piece</option>
+        </select>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Number of Yield:</span>
+        <input type="text" class="edit-cell" id="numberOfYield" />
+      </div>
+      <div class="info-row">
+    <span class="info-label">Selling Price:</span>
+    <input type="text" class="edit-cell" id="sellingPrice" oninput="updateChart()" />
+  </div>
+      <div class="info-row">
+        <span class="info-label">Shelf Life:</span>
+        <input type="text" class="edit-cell" id="costOfRecipe" />
+      </div>
+    </div>
+
+    <div id="modifyFields" class="hidden">
+      <div class="info-row">
+        <span class="info-label">Article Code:</span>
+        <input type="text" class="edit-cell" id="articleCode" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">Description:</span>
+        <input type="text" class="edit-cell" id="description" />
+      </div>
+    </div>
+  </div>
+
+  <div class="ingredients-title">Ingredients</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>S.no</th>
+        <th>Article Code</th>
+        <th>Description</th>
+        <th>Quantity</th>
+        <th>Cost</th>
+        <th>Calculated Quantity</th>
+        <th>Calculated Cost</th> <!-- New column -->
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be added dynamically -->
+    </tbody>
+  </table>
+</div>
+
+
+<div class="button-container">
+   <button class="add-button" onclick="addRow()">+</button>
+  <button class="submit-button" onclick="submitData()">Submit</button>
+</div>
+<div class="button-container">
+    <button class="clear-button" onclick="clearFields()">Clear</button>
+  </div>
+   <!-- Custom Confirm Dialog -->
+<div id="customDialog" class="dialog" style="display: none;">
+    <div class="dialog-content">
+        <p id="dialogMessage"></p>
+        <button id="dialogConfirm" class="submit-btn">Confirm</button>
+        <button id="dialogCancel" class="cancel-btn">Cancel</button>
+    </div>
+</div>
+
+<!-- Custom Email Dialog -->
+<div id="emailDialog" class="dialog" style="display: none;">
+    <div class="dialog-content">
+        <p id="emailMessage">Enter your email ID for a copy of the Recipe:</p>
+        <input type="email" id="userEmail" placeholder="Enter your email ID">
+        <button id="emailConfirm" class="submit-btn">Submit</button>
+        <button id="emailCancel" class="cancel-btn">Cancel</button>
+    </div>
+</div>
+
+<!-- Custom Success Dialog -->
+<div id="successDialog" class="dialog" style="display: none;">
+    <div class="dialog-content">
+        <p id="successMessage">Recipe submitted successfully!</p>
+        <button id="successConfirm" class="submit-btn">OK</button>
+    </div>
+</div>
+
+<!-- Custom Email ID Required Dialog -->
+<div id="emailRequiredDialog" class="dialog" style="display: none;">
+    <div class="dialog-content">
+        <p>Email ID is required to send a copy.</p>
+        <button id="emailRequiredConfirm" class="submit-btn">OK</button>
+        <button id="emailRequiredCancel" class="cancel-btn">Cancel</button>
+    </div>
+</div>
+
+  <script>
+    // Existing JavaScript code...
+
+    function clearFields() {
+      // Clear the total cost and profit percentage
+      document.getElementById('totalCost').innerText = '0';
+      document.getElementById('profitPercentage').innerText = '0%';
+
+      // Clear all input fields (assuming you have input fields with a specific class or id)
+      const inputs = document.querySelectorAll('.edit-cell'); // Replace with your input class or ids
+      inputs.forEach(input => {
+        input.value = ''; // Clear each input
+      });
+
+      // **Remove all active ingredient table rows**
+      const ingredientTableBody = document.querySelector('table tbody');
+      ingredientTableBody.innerHTML = ''; // This removes all existing rows
+    }
+      // Function to handle the selling price input change
+  document.getElementById('sellingPrice').addEventListener('input', function() {
+    if (this.value) { // Check if the input field is not empty
+      this.style.backgroundColor = 'yellow'; // Change background to yellow
+    } else {
+      this.style.backgroundColor = ''; // Reset background if empty
+    }
+  });
+    
+
+    // Existing JavaScript code...
+  </script>
+
+<div class="shortcut-info">
+  <strong>Shortcut:</strong> Press <strong><mark>Ctrl + Q</mark></strong> to add a new row, <strong><mark>Ctrl + Z</mark></strong> to remove a row.
+</div>
+
+
+<script>
+  // Show fields for new creation and modify
+  document.getElementById("recipeOption").addEventListener("change", function() {
+    const selectedOption = this.value;
+    const newCreationFields = document.getElementById("newCreationFields");
+    const modifyFields = document.getElementById("modifyFields");
+   
+    // Show new creation fields if selected
+    if (selectedOption === "new") {
+      newCreationFields.classList.remove("hidden");
+      modifyFields.classList.add("hidden");
+    }
+    // Show modify fields if selected
+    else if (selectedOption === "modify") {
+      modifyFields.classList.remove("hidden");
+      newCreationFields.classList.add("hidden");
+    } else {
+      newCreationFields.classList.add("hidden");
+      modifyFields.classList.add("hidden");
+    }
+  });
+
+ 
+ // Function to add a new row
+function addRow() {
+  const numberOfYield = document.getElementById("numberOfYield").value;
+
+  const table = document.querySelector("tbody");
+  const rowCount = table.rows.length + 1; // Calculate the new row number
+  const newRow = document.createElement("tr");
+
+  newRow.innerHTML = `
+    <td>${rowCount}</td> <!-- Serial number -->
+    <td><input type="text" class="edit-cell" /></td>
+    <td><input type="text" class="edit-cell" /></td>
+    <td><input type="number" class="edit-cell" /></td> <!-- Quantity -->
+    <td><input type="number" class="edit-cell" oninput="updateTotalCost()" /></td> <!-- Cost -->
+    <td><input type="number" class="edit-cell" readonly /></td> <!-- Calculated Quantity -->
+    <td><input type="number" class="edit-cell" readonly /></td> <!-- Calculated Cost --> <!-- New column -->
+    <td><button class="remove-button" onclick="removeRow(this)">-</button></td>
+  `;
+
+  table.appendChild(newRow);
+  updateTotalCost(); // Update total cost when a new row is added
+}
+
+// Function to remove the row
+function removeRow(button) {
+  const row = button.closest('tr'); // Find the closest table row to the button
+  row.remove(); // Remove the row
+  updateSerialNumbers(); // Update serial numbers after removing a row
+  updateTotalCost(); // Update the total cost when a row is removed
+}
+
+// Function to update serial numbers after row removal
+function updateSerialNumbers() {
+  const table = document.querySelector("tbody");
+  const rows = table.querySelectorAll("tr");
+
+  rows.forEach((row, index) => {
+    row.cells[0].textContent = index + 1; // Update serial number
+  });
+}
+
+
+function updateTotalCost() {
+  const numberOfYield = parseFloat(document.getElementById("numberOfYield").value) || 1; // Get number of yield from an input field
+  const table = document.querySelector("tbody");
+  let totalCost = 0;
+  const rows = table.querySelectorAll("tr");
+
+  rows.forEach(row => {
+    let quantityInput = row.cells[3].querySelector("input"); // Get quantity input element
+    let quantity = parseFloat(quantityInput.value) || 0; // Get quantity value
+    quantityInput.value = quantity.toFixed(3); // Display quantity with 3 decimal places
+
+    const cost = parseFloat(row.cells[4].querySelector("input").value) || 0; // Get cost value
+    const calculatedQuantity = quantity / numberOfYield; // Calculate calculated quantity
+
+    // Update the Calculated Quantity column with 3 decimal places
+    const calculatedQuantityCell = row.cells[5].querySelector("input");
+    calculatedQuantityCell.value = calculatedQuantity.toFixed(3); // Display calculated quantity with 3 decimal places
+    calculatedQuantityCell.style.backgroundColor = "#fc9292"; // Set background color to light red
+
+    // Calculate the total cost for the row as Cost * Calculated Quantity
+    const calculatedCost = cost * calculatedQuantity; // New calculation for calculated cost
+
+    // Update the Calculated Cost column
+    const calculatedCostCell = row.cells[6].querySelector("input");
+    calculatedCostCell.value = calculatedCost.toFixed(2); // Display calculated cost with 2 decimal places
+    calculatedCostCell.style.backgroundColor = "#80e5e2"; // Set background color to light red
+
+    // Add to the overall total cost
+    totalCost += calculatedCost; // Update total cost with the new calculated cost
+  });
+
+  // Display the total cost in the desired element
+  document.getElementById("totalCost").textContent = totalCost.toFixed(2);
+
+  // Optional: Update the chart if needed
+  updateChart(); 
+}
+
+
+
+
+
+
+  // Function to remove the last row
+  function removeLastRow() {
+    const table = document.querySelector("tbody");
+    const lastRow = table.lastElementChild;
+    if (lastRow) {
+      lastRow.remove();
+      updateTotalCost(); // Update total cost after removing the last row
+    }
+  }
+
+  // Adding shortcut keys
+  document.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && (event.key === 'q' || event.key === 'Q')) {
+      event.preventDefault();
+      addRow(); // Add row on Ctrl + N
+    } else if (event.ctrlKey && (event.key === 'z' || event.key === 'Z')) {
+      event.preventDefault();
+      removeLastRow(); // Remove last row on Ctrl + D
+    }
+   
+  });
+function submitData() {
+    const selectedOption = document.getElementById("recipeOption").value;
+    const formData = {
+        ingredients: [] // To hold ingredient data
+    };
+
+    // Show custom confirm dialog
+    showDialog("Are you sure you want to submit the Recipe?", function() {
+        // Show custom email prompt dialog
+        showEmailDialog(function(userEmail) {
+            if (!userEmail) {
+                // Show email required dialog
+                showEmailRequiredDialog();
+                return; // Exit if no email is provided
+            }
+
+            // Prepare form data based on selected option
+            if (selectedOption === "new") {
+                formData.location = document.getElementById('location').value;
+                formData.date = document.getElementById('date').value;
+                formData.recipeName = document.getElementById('recipeName').value;
+                formData.arabicDesc = document.getElementById('arabicDesc').value;
+                formData.recipeUnit = document.getElementById('recipeUnit').value;
+                formData.numberOfYield = document.getElementById('numberOfYield').value;
+                formData.sellingPrice = document.getElementById('sellingPrice').value;
+                formData.shelfLife = document.getElementById('costOfRecipe').value;
+
+                // Gather ingredient data from the table
+                gatherIngredientData(formData);
+
+                // Call the sendEmail function with form data for NEW CREATION
+                google.script.run.withSuccessHandler(() => {
+                    showSuccessDialog(); // Show success dialog
+                    clearFields(); // Clear fields after submission
+                }).withFailureHandler(error => {
+                    alert('Error: ' + error.message); // Show error message
+                }).sendEmail("new", formData, userEmail); // Pass user email for sending a copy
+
+            } else if (selectedOption === "modify") {
+                formData.articleCode = document.getElementById('articleCode').value;
+                formData.description = document.getElementById('description').value;
+
+                // Gather ingredient data from the table
+                gatherIngredientData(formData);
+
+                // Call the sendEmail function with form data for RECIPE MODIFY
+                google.script.run.withSuccessHandler(() => {
+                    showSuccessDialog(); // Show success dialog
+                    clearFields(); // Clear fields after submission
+                }).withFailureHandler(error => {
+                    alert('Error: ' + error.message); // Show error message
+                }).sendEmail("modify", formData, userEmail); // Pass user email for sending a copy
+            }
+        });
+    },function() {
+        // User canceled the submission
+        showDialog("Submission canceled. Are you sure you want to exit?", function() {
+            // Add any additional logic here if needed
+            alert("You can return to make your submission again.");
+        }, function() {
+            // Logic to keep the dialog open or any additional action
+            alert("You're still on the form.");
+        });
+    });
+}
+
+// Function to gather ingredient data from the table
+function gatherIngredientData(formData) {
+    const ingredientRows = document.querySelectorAll('tbody tr');
+    ingredientRows.forEach(row => {
+        const articleCode = row.cells[1].querySelector('input').value;
+        const description = row.cells[2].querySelector('input').value;
+        const quantity = row.cells[3].querySelector('input').value;
+        const cost = row.cells[4].querySelector('input').value;
+        const CalculatedQuantity = row.cells[5].querySelector('input').value;
+        const CalculatedCost = row.cells[5].querySelector('input').value;
+        
+
+        // Push ingredient data into the ingredients array
+        formData.ingredients.push({
+            articleCode,
+            description,
+            quantity,
+            cost,
+            CalculatedQuantity,
+            CalculatedCost,
+            
+        });
+    });
+}
+
+// Function to show the custom confirm dialog
+function showDialog(message, onConfirm, onCancel) {
+    document.getElementById("dialogMessage").innerText = message;
+    document.getElementById("customDialog").style.display = "flex";
+
+    document.getElementById("dialogConfirm").onclick = function() {
+        onConfirm();
+        document.getElementById("customDialog").style.display = "none"; // Close dialog
+    };
+
+    document.getElementById("dialogCancel").onclick = function() {
+        onCancel();
+        document.getElementById("customDialog").style.display = "none"; // Close dialog
+    };
+}
+
+// Function to show the email input dialog
+function showEmailDialog(onEmailSubmit) {
+    document.getElementById("emailDialog").style.display = "flex";
+
+    document.getElementById("emailConfirm").onclick = function() {
+        const userEmail = document.getElementById("userEmail").value;
+        onEmailSubmit(userEmail);
+        document.getElementById("emailDialog").style.display = "none"; // Close dialog
+    };
+
+    document.getElementById("emailCancel").onclick = function() {
+        onEmailSubmit(null); // No email submitted
+        document.getElementById("emailDialog").style.display = "none"; // Close dialog
+    };
+}
+
+// Function to show the email required dialog
+function showEmailRequiredDialog() {
+    document.getElementById("emailRequiredDialog").style.display = "flex";
+
+    document.getElementById("emailRequiredConfirm").onclick = function() {
+        document.getElementById("emailRequiredDialog").style.display = "none"; // Close dialog
+    };
+
+    document.getElementById("emailRequiredCancel").onclick = function() {
+        document.getElementById("emailRequiredDialog").style.display = "none"; // Close dialog
+    };
+}
+
+// Function to show success dialog
+function showSuccessDialog() {
+    document.getElementById("successDialog").style.display = "flex";
+
+    document.getElementById("successConfirm").onclick = function() {
+        document.getElementById("successDialog").style.display = "none"; // Close dialog
+    };
+}
+
+// Function to clear the input fields and remove ingredient rows after submission
+function clearFields() {
+    document.getElementById('location').value = '';
+    document.getElementById('date').value = '';
+    document.getElementById('recipeName').value = '';
+    document.getElementById('arabicDesc').value = '';
+    document.getElementById('recipeUnit').value = '';
+    document.getElementById('numberOfYield').value = '';
+    document.getElementById('sellingPrice').value = '';
+    document.getElementById('costOfRecipe').value = '';
+    document.getElementById('articleCode').value = '';
+    document.getElementById('description').value = '';
+
+    // Remove all ingredient rows from the table
+    const ingredientTableBody = document.querySelector('tbody'); // Select the tbody of the ingredients table
+    while (ingredientTableBody.firstChild) {
+        ingredientTableBody.removeChild(ingredientTableBody.firstChild); // Remove all rows
+    }
+}
+
+
+</script>
+</body>
+</html>
