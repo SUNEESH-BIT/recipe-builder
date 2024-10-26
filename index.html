@@ -696,6 +696,9 @@ th {
   <strong>Shortcut:</strong> Press <strong><mark>Ctrl + Q</mark></strong> to add a new row, <strong><mark>Ctrl + Z</mark></strong> to remove a row.
 </div>
 
+ <!-- Add the external script here -->
+  <script src="code.js"></script>
+
 
 <script>
   // Show fields for new creation and modify
@@ -826,95 +829,24 @@ function updateTotalCost() {
     }
    
   });
- async function getFileSha() {
-    const url = `https://api.github.com/repos/OWNER/REPO/contents/FILE_PATH.json`;
-    
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'Authorization': 'token YOUR_GITHUB_TOKEN',
-            'Accept': 'application/vnd.github.v3.raw'
-        },
-    });
-
-    if (!response.ok) {
-        const errorDetails = await response.json();
-        throw new Error(`GitHub API error: ${errorDetails.message}`);
-    }
-
-    const fileData = await response.json();
-    return fileData.sha; // Return the SHA of the file
-}
-
-async function sendToGitHub(action, formData, userEmail) {
-    const url = `https://api.github.com/repos/OWNER/REPO/contents/FILE_PATH.json`;
-    const sha = await getFileSha(); // Get the SHA of the existing file
-    const content = btoa(JSON.stringify({ action, formData, userEmail })); // Base64 encode the content
-
-    const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': 'token YOUR_GITHUB_TOKEN',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            message: `Submitting ${action} data`,
-            content: content,
-            sha: sha,
-        }),
-    });
-
-    if (!response.ok) {
-        const errorDetails = await response.json();
-        throw new Error(`GitHub API error: ${errorDetails.message}`);
-    }
-
-    return await response.json();
-}
-
-function gatherIngredientData(formData) {
-    const ingredientInputs = document.querySelectorAll('.ingredient'); // Assuming you have ingredient fields with class 'ingredient'
-    ingredientInputs.forEach(input => {
-        formData.ingredients.push(input.value); // Push each ingredient to the formData
-    });
-}
-
-function showDialog(message, onConfirm, onCancel) {
-    // Replace this with your actual dialog implementation
-    if (confirm(message)) {
-        onConfirm();
-    } else {
-        onCancel();
-    }
-}
-
-function showEmailDialog(onSubmit) {
-    // Replace this with your actual email input dialog implementation
-    const userEmail = prompt("Please enter your email:");
-    onSubmit(userEmail);
-}
-
-function showSuccessDialog() {
-    alert("Submission successful!");
-}
-
-function clearFields() {
-    document.querySelectorAll('input').forEach(input => input.value = ''); // Clear all input fields
-}
-
-async function submitData() {
+function submitData() {
     const selectedOption = document.getElementById("recipeOption").value;
-    const formData = { ingredients: [] };
+    const formData = {
+        ingredients: [] // To hold ingredient data
+    };
 
-    showDialog("Are you sure you want to submit the Recipe?", async function () {
-        showEmailDialog(async function (userEmail) {
+    // Show custom confirm dialog
+    showDialog("Are you sure you want to submit the Recipe?", function() {
+        // Show custom email prompt dialog
+        showEmailDialog(function(userEmail) {
             if (!userEmail) {
-                alert("Email is required.");
-                return;
+                // Show email required dialog
+                showEmailRequiredDialog();
+                return; // Exit if no email is provided
             }
 
+            // Prepare form data based on selected option
             if (selectedOption === "new") {
-                // Gather form data for new recipe
                 formData.location = document.getElementById('location').value;
                 formData.date = document.getElementById('date').value;
                 formData.recipeName = document.getElementById('recipeName').value;
@@ -922,46 +854,147 @@ async function submitData() {
                 formData.recipeUnit = document.getElementById('recipeUnit').value;
                 formData.numberOfYield = document.getElementById('numberOfYield').value;
                 formData.sellingPrice = document.getElementById('sellingPrice').value;
-                formData.shelfLife = document.getElementById('shelfLife').value;
+                formData.shelfLife = document.getElementById('costOfRecipe').value;
 
+                // Gather ingredient data from the table
                 gatherIngredientData(formData);
 
-                try {
-                    await sendToGitHub("new", formData, userEmail);
-                    showSuccessDialog();
-                    clearFields();
-                } catch (error) {
-                    console.error("Submission error:", error);
-                    alert(`Error: ${error.message}`);
-                }
+                // Call the sendEmail function with form data for NEW CREATION
+                google.script.run.withSuccessHandler(() => {
+                    showSuccessDialog(); // Show success dialog
+                    clearFields(); // Clear fields after submission
+                }).withFailureHandler(error => {
+                    alert('Error: ' + error.message); // Show error message
+                }).sendEmail("new", formData, userEmail); // Pass user email for sending a copy
+
             } else if (selectedOption === "modify") {
-                // Modify existing recipe
                 formData.articleCode = document.getElementById('articleCode').value;
                 formData.description = document.getElementById('description').value;
 
+                // Gather ingredient data from the table
                 gatherIngredientData(formData);
 
-                try {
-                    await sendToGitHub("modify", formData, userEmail);
-                    showSuccessDialog();
-                    clearFields();
-                } catch (error) {
-                    console.error("Modification error:", error);
-                    alert(`Error: ${error.message}`);
-                }
+                // Call the sendEmail function with form data for RECIPE MODIFY
+                google.script.run.withSuccessHandler(() => {
+                    showSuccessDialog(); // Show success dialog
+                    clearFields(); // Clear fields after submission
+                }).withFailureHandler(error => {
+                    alert('Error: ' + error.message); // Show error message
+                }).sendEmail("modify", formData, userEmail); // Pass user email for sending a copy
             }
         });
-    }, function () {
-        showDialog("Submission canceled. Are you sure you want to exit?", function () {
+    },function() {
+        // User canceled the submission
+        showDialog("Submission canceled. Are you sure you want to exit?", function() {
+            // Add any additional logic here if needed
             alert("You can return to make your submission again.");
-        }, function () {
+        }, function() {
+            // Logic to keep the dialog open or any additional action
             alert("You're still on the form.");
         });
     });
 }
 
-// Event listener for the submit button
-document.getElementById('submitButton').addEventListener('click', submitData);
+// Function to gather ingredient data from the table
+function gatherIngredientData(formData) {
+    const ingredientRows = document.querySelectorAll('tbody tr');
+    ingredientRows.forEach(row => {
+        const articleCode = row.cells[1].querySelector('input').value;
+        const description = row.cells[2].querySelector('input').value;
+        const quantity = row.cells[3].querySelector('input').value;
+        const cost = row.cells[4].querySelector('input').value;
+        const CalculatedQuantity = row.cells[5].querySelector('input').value;
+        const CalculatedCost = row.cells[5].querySelector('input').value;
+        
 
+        // Push ingredient data into the ingredients array
+        formData.ingredients.push({
+            articleCode,
+            description,
+            quantity,
+            cost,
+            CalculatedQuantity,
+            CalculatedCost,
+            
+        });
+    });
+}
+
+// Function to show the custom confirm dialog
+function showDialog(message, onConfirm, onCancel) {
+    document.getElementById("dialogMessage").innerText = message;
+    document.getElementById("customDialog").style.display = "flex";
+
+    document.getElementById("dialogConfirm").onclick = function() {
+        onConfirm();
+        document.getElementById("customDialog").style.display = "none"; // Close dialog
+    };
+
+    document.getElementById("dialogCancel").onclick = function() {
+        onCancel();
+        document.getElementById("customDialog").style.display = "none"; // Close dialog
+    };
+}
+
+// Function to show the email input dialog
+function showEmailDialog(onEmailSubmit) {
+    document.getElementById("emailDialog").style.display = "flex";
+
+    document.getElementById("emailConfirm").onclick = function() {
+        const userEmail = document.getElementById("userEmail").value;
+        onEmailSubmit(userEmail);
+        document.getElementById("emailDialog").style.display = "none"; // Close dialog
+    };
+
+    document.getElementById("emailCancel").onclick = function() {
+        onEmailSubmit(null); // No email submitted
+        document.getElementById("emailDialog").style.display = "none"; // Close dialog
+    };
+}
+
+// Function to show the email required dialog
+function showEmailRequiredDialog() {
+    document.getElementById("emailRequiredDialog").style.display = "flex";
+
+    document.getElementById("emailRequiredConfirm").onclick = function() {
+        document.getElementById("emailRequiredDialog").style.display = "none"; // Close dialog
+    };
+
+    document.getElementById("emailRequiredCancel").onclick = function() {
+        document.getElementById("emailRequiredDialog").style.display = "none"; // Close dialog
+    };
+}
+
+// Function to show success dialog
+function showSuccessDialog() {
+    document.getElementById("successDialog").style.display = "flex";
+
+    document.getElementById("successConfirm").onclick = function() {
+        document.getElementById("successDialog").style.display = "none"; // Close dialog
+    };
+}
+
+// Function to clear the input fields and remove ingredient rows after submission
+function clearFields() {
+    document.getElementById('location').value = '';
+    document.getElementById('date').value = '';
+    document.getElementById('recipeName').value = '';
+    document.getElementById('arabicDesc').value = '';
+    document.getElementById('recipeUnit').value = '';
+    document.getElementById('numberOfYield').value = '';
+    document.getElementById('sellingPrice').value = '';
+    document.getElementById('costOfRecipe').value = '';
+    document.getElementById('articleCode').value = '';
+    document.getElementById('description').value = '';
+
+    // Remove all ingredient rows from the table
+    const ingredientTableBody = document.querySelector('tbody'); // Select the tbody of the ingredients table
+    while (ingredientTableBody.firstChild) {
+        ingredientTableBody.removeChild(ingredientTableBody.firstChild); // Remove all rows
+    }
+}
+
+
+</script>
 </body>
 </html>
