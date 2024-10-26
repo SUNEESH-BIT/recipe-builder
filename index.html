@@ -884,6 +884,26 @@ function updateTotalCost() {
     });
 }
 
+async function getFileSha() {
+    const url = `https://api.github.com/repos/OWNER/REPO/contents/FILE_PATH.json`;
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'token YOUR_GITHUB_TOKEN',
+            'Accept': 'application/vnd.github.v3.raw' // This specifies that you want the raw content
+        },
+    });
+
+    if (!response.ok) {
+        const errorDetails = await response.json();
+        throw new Error(`GitHub API error: ${errorDetails.message}`);
+    }
+
+    const fileData = await response.json();
+    return fileData.sha; // Return the SHA of the file
+}
+
 async function sendToGitHub(action, formData, userEmail) {
     const url = `https://api.github.com/repos/OWNER/REPO/contents/FILE_PATH.json`;
     const sha = await getFileSha();
@@ -1044,7 +1064,6 @@ async function sendEmailFunction(recipient, userEmail, subject, body) {
 }
 
 document.getElementById('submitButton').addEventListener('click', submitData);
-</script>
 
 </body>
 </html>
