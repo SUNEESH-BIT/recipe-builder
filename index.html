@@ -828,21 +828,15 @@ function updateTotalCost() {
   });
   async function submitData() {
     const selectedOption = document.getElementById("recipeOption").value;
-    const formData = {
-        ingredients: [] // To hold ingredient data
-    };
+    const formData = { ingredients: [] };
 
-    // Show custom confirm dialog
-    showDialog("Are you sure you want to submit the Recipe?", async function() {
-        // Show custom email prompt dialog
-        showEmailDialog(async function(userEmail) {
+    showDialog("Are you sure you want to submit the Recipe?", async function () {
+        showEmailDialog(async function (userEmail) {
             if (!userEmail) {
-                // Show email required dialog
                 showEmailRequiredDialog();
-                return; // Exit if no email is provided
+                return;
             }
 
-            // Prepare form data based on selected option
             if (selectedOption === "new") {
                 formData.location = document.getElementById('location').value;
                 formData.date = document.getElementById('date').value;
@@ -853,72 +847,58 @@ function updateTotalCost() {
                 formData.sellingPrice = document.getElementById('sellingPrice').value;
                 formData.shelfLife = document.getElementById('costOfRecipe').value;
 
-                // Gather ingredient data from the table
                 gatherIngredientData(formData);
 
-              try {
-    const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `token ${YOUR_GITHUB_TOKEN}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-        const errorResponse = await response.json();
-        console.error('GitHub API error:', errorResponse);
-        throw new Error(`GitHub API error: ${errorResponse.message}`);
-    }
-} catch (error) {
-    console.error('Error:', error);
-}
-
-
+                try {
+                    await sendToGitHub("new", formData, userEmail);
+                    await sendEmail("new", formData, userEmail);
+                    showSuccessDialog();
+                    clearFields();
+                } catch (error) {
+                    console.error("Submission error:", error);
+                    alert(`Error: ${error.message}`);
+                }
             } else if (selectedOption === "modify") {
                 formData.articleCode = document.getElementById('articleCode').value;
                 formData.description = document.getElementById('description').value;
 
-                // Gather ingredient data from the table
                 gatherIngredientData(formData);
 
                 try {
                     await sendToGitHub("modify", formData, userEmail);
-                    await sendEmail("modify", formData, userEmail); // Send email for modification
-                    showSuccessDialog(); // Show success dialog
-                    clearFields(); // Clear fields after submission
+                    await sendEmail("modify", formData, userEmail);
+                    showSuccessDialog();
+                    clearFields();
                 } catch (error) {
-                    alert('Error: ' + error.message); // Show error message
+                    console.error("Modification error:", error);
+                    alert(`Error: ${error.message}`);
                 }
             }
         });
-    }, function() {
-        // User canceled the submission
-        showDialog("Submission canceled. Are you sure you want to exit?", function() {
+    }, function () {
+        showDialog("Submission canceled. Are you sure you want to exit?", function () {
             alert("You can return to make your submission again.");
-        }, function() {
+        }, function () {
             alert("You're still on the form.");
         });
     });
 }
 
 async function sendToGitHub(action, formData, userEmail) {
-    const url = `https://api.github.com/repos/OWNER/REPO/contents/FILE_PATH.json`; // Update with your GitHub repo info
-
-    const sha = await getFileSha(); // Get existing SHA if updating
-    const content = btoa(JSON.stringify({ action, formData, userEmail })); // Encode data as Base64
+    const url = `https://api.github.com/repos/OWNER/REPO/contents/FILE_PATH.json`;
+    const sha = await getFileSha();
+    const content = btoa(JSON.stringify({ action, formData, userEmail }));
 
     const response = await fetch(url, {
         method: 'PUT',
         headers: {
-            'Authorization': 'token YOUR_GITHUB_TOKEN', // Replace with your GitHub token
+            'Authorization': 'token YOUR_GITHUB_TOKEN',
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
             message: `Submitting ${action} data`,
             content: content,
-            sha: sha // Include SHA to update the existing file
+            sha: sha,
         }),
     });
 
@@ -930,8 +910,6 @@ async function sendToGitHub(action, formData, userEmail) {
     return await response.json();
 }
 
-
-// Function to gather ingredient data from the table
 function gatherIngredientData(formData) {
     const ingredientRows = document.querySelectorAll('tbody tr');
     ingredientRows.forEach(row => {
@@ -940,9 +918,8 @@ function gatherIngredientData(formData) {
         const quantity = row.cells[3].querySelector('input').value;
         const cost = row.cells[4].querySelector('input').value;
         const CalculatedQuantity = row.cells[5].querySelector('input').value;
-        const CalculatedCost = row.cells[6].querySelector('input').value; // Fixed index for CalculatedCost
+        const CalculatedCost = row.cells[6].querySelector('input').value;
 
-        // Push ingredient data into the ingredients array
         formData.ingredients.push({
             articleCode,
             description,
@@ -954,9 +931,7 @@ function gatherIngredientData(formData) {
     });
 }
 
-// Helper functions for dialogs
 function showDialog(message, onConfirm, onCancel) {
-    // Implementation of the custom dialog for confirmation
     if (confirm(message)) {
         onConfirm();
     } else {
@@ -965,7 +940,6 @@ function showDialog(message, onConfirm, onCancel) {
 }
 
 function showEmailDialog(onSubmit) {
-    // Implementation for email input dialog
     const userEmail = prompt("Please enter your email:");
     onSubmit(userEmail);
 }
@@ -987,15 +961,8 @@ function clearFields() {
     document.getElementById('numberOfYield').value = '';
     document.getElementById('sellingPrice').value = '';
     document.getElementById('costOfRecipe').value = '';
-    // Clear ingredient fields if necessary
 }
 
-/**
- * Sends an email to the recipient with the least submissions and CCs it to the user.
- * @param {string} option - The email option, either "new" or "modify."
- * @param {Object} formData - Data from the form to include in the email.
- * @param {string} userEmail - User's email to send a CC copy.
- */
 async function sendEmail(option, formData, userEmail) {
     const RECIPIENTS = [
         "moosa@grandhyper.com",
@@ -1006,31 +973,26 @@ async function sendEmail(option, formData, userEmail) {
         "suneeshk63@gmail.com"
     ];
 
-    // Simulate script properties in a local context (for GitHub)
     let counts = JSON.parse(localStorage.getItem('recipientCounts') || '{"0":0,"1":0,"2":0,"3":0,"4":0,"5":0}');
     let subject, htmlBody;
-
-    // Generate a unique short token (6-digit random number)
     const tokenNumber = Math.floor(100000 + Math.random() * 900000);
 
-    // Basic validation for "new" option
     if (option === "new") {
         if (!formData.location || !formData.date || !formData.recipeName) {
             throw new Error("Location, Date, and Recipe Name are required fields.");
         }
 
         subject = `Recipe Builder - New Creation - Token: ${tokenNumber}`;
-        htmlBody = generateHtmlBody("new", formData); // Generates HTML body for 'new' option
+        htmlBody = generateHtmlBody("new", formData);
     } else if (option === "modify") {
         if (!formData.articleCode || !formData.description) {
             throw new Error("Article Code and Description are required fields for modifications.");
         }
 
         subject = `Recipe Builder - Modify - Token: ${tokenNumber}`;
-        htmlBody = generateHtmlBody("modify", formData); // Generates HTML body for 'modify' option
+        htmlBody = generateHtmlBody("modify", formData);
     }
 
-    // Find recipient with the least submissions
     let minCountIndex = 0;
     for (let i = 1; i < RECIPIENTS.length; i++) {
         if (counts[i] < counts[minCountIndex]) {
@@ -1040,12 +1002,9 @@ async function sendEmail(option, formData, userEmail) {
 
     const recipient = RECIPIENTS[minCountIndex];
 
-    // Send the email to selected recipient and CC the user
     try {
-        // Simulated email sending function (you'll need to replace this with actual email-sending logic)
         await sendEmailFunction(recipient, userEmail, subject, htmlBody);
 
-        // Increment the count for that recipient and save
         counts[minCountIndex]++;
         localStorage.setItem('recipientCounts', JSON.stringify(counts));
     } catch (error) {
@@ -1054,86 +1013,37 @@ async function sendEmail(option, formData, userEmail) {
     }
 }
 
-/**
- * Generates the HTML body based on the email option and form data.
- * @param {string} option - Either "new" or "modify" to determine email format.
- * @param {Object} formData - Data from the form to include in the email.
- * @returns {string} - The HTML body content for the email.
- */
 function generateHtmlBody(option, formData) {
     let bodyHtml = '';
     if (option === 'new') {
         bodyHtml = `
-      <html>
-        <head>
-          <style>
-            h1 { color: #2c3e50; }
-            .info-container { font-family: Arial, sans-serif; }
-          </style>
-        </head>
-        <body>
-          <h1>New Recipe Submission</h1>
-          <div class="info-container">
+            <h1>New Recipe Submission</h1>
             <p><strong>Location:</strong> ${formData.location}</p>
             <p><strong>Date:</strong> ${formData.date}</p>
             <p><strong>Recipe Name:</strong> ${formData.recipeName}</p>
             <p><strong>Arabic Description:</strong> ${formData.arabicDesc}</p>
-            <p><strong>Recipe Unit:</strong> ${formData.recipeUnit}</p>
-            <p><strong>Number of Yield:</strong> ${formData.numberOfYield}</p>
-            <p><strong>Selling Price:</strong> ${formData.sellingPrice}</p>
-            <p><strong>Shelf Life:</strong> ${formData.shelfLife}</p>
             <h3>Ingredients:</h3>
-            <ul>
-              ${formData.ingredients.map(ingredient => `
-                <li>${ingredient.articleCode} - ${ingredient.description} - ${ingredient.quantity} - ${ingredient.cost}</li>
-              `).join('')}
-            </ul>
-          </div>
-        </body>
-      </html>`;
+            <ul>${formData.ingredients.map(ingredient => `<li>${ingredient.articleCode} - ${ingredient.description}</li>`).join('')}</ul>`;
     } else if (option === 'modify') {
         bodyHtml = `
-      <html>
-        <head>
-          <style>
-            h1 { color: #c0392b; }
-            .info-container { font-family: Arial, sans-serif; }
-          </style>
-        </head>
-        <body>
-          <h1>Recipe Modification Submission</h1>
-          <div class="info-container">
+            <h1>Recipe Modification Submission</h1>
             <p><strong>Article Code:</strong> ${formData.articleCode}</p>
             <p><strong>Description:</strong> ${formData.description}</p>
             <h3>Ingredients:</h3>
-            <ul>
-              ${formData.ingredients.map(ingredient => `
-                <li>${ingredient.articleCode} - ${ingredient.description} - ${ingredient.quantity} - ${ingredient.cost}</li>
-              `).join('')}
-            </ul>
-          </div>
-        </body>
-      </html>`;
+            <ul>${formData.ingredients.map(ingredient => `<li>${ingredient.articleCode} - ${ingredient.description}</li>`).join('')}</ul>`;
     }
     return bodyHtml;
 }
 
-/**
- * Simulated email sending function.
- * Replace this with actual implementation to send emails.
- */
 async function sendEmailFunction(recipient, userEmail, subject, body) {
     console.log(`Sending email to: ${recipient}`);
     console.log(`CC: ${userEmail}`);
     console.log(`Subject: ${subject}`);
     console.log(`Body: ${body}`);
-    // Simulate sending the email with a delay
     return new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
-// Assuming there's an event listener to trigger the submitData function on form submission
 document.getElementById('submitButton').addEventListener('click', submitData);
-
 </script>
 
 </body>
